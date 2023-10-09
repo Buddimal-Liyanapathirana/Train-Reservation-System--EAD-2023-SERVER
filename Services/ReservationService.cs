@@ -11,6 +11,7 @@ public class ReservationService : IReservationService
     private readonly IMongoCollection<Reservation> _reservationCollection;
     private readonly IMongoCollection<Train> _trainCollection;
     private readonly IMongoCollection<User> _userCollection;
+    private readonly IMongoCollection<Schedule> _scheduleCollection;
 
 
     public ReservationService(IOptions<DatabaseSettings> dbSettings)
@@ -20,6 +21,7 @@ public class ReservationService : IReservationService
         _reservationCollection = mongoDatabase.GetCollection<Reservation>(dbSettings.Value.ReservationsCollectionName);
         _trainCollection = mongoDatabase.GetCollection<Train>(dbSettings.Value.TrainsCollectionName);
         _userCollection = mongoDatabase.GetCollection<User>(dbSettings.Value.UsersCollectionName);
+        _scheduleCollection = mongoDatabase.GetCollection<Schedule>(dbSettings.Value.SchedulesCollectionName);
     }
 
     public async Task<IEnumerable<Reservation>> GetAllAsync()
@@ -73,8 +75,9 @@ public class ReservationService : IReservationService
         }
         else
         {
+            double totalFare = await CalculateToralFare(train.Schedule , reservation.LuxurySeats , reservation.EconomySeats);
+            reservation.TotalFare = totalFare;
             await _reservationCollection.InsertOneAsync(reservation);
-            // Update Train and User collections 
             await UpdateTrainAndUserCollections(train.Id, user.NIC, reservation.Id);
         }
         return "Reservation created successfully";
@@ -82,10 +85,11 @@ public class ReservationService : IReservationService
 
     public async Task<string> UpdateAsync(string id, Reservation reservation)
     {
-        // Check if the reservation exists
         var existingReservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
         if (existingReservation == null)
             return "Reservation not found";
+
+        var train = await _trainCollection.Find(t => t.Id == reservation.TrainId).FirstOrDefaultAsync();
 
         if ((reservation.ReservedOn - DateTime.Now).TotalDays < 5)
         {
@@ -103,8 +107,15 @@ public class ReservationService : IReservationService
         }
         else
         {
+            double totalFare = await CalculateToralFare(train.Schedule, reservation.LuxurySeats, reservation.EconomySeats);
+
             var filter = Builders<Reservation>.Filter.Eq(r => r.Id, id);
-            await _reservationCollection.ReplaceOneAsync(filter, existingReservation);
+            var update = Builders<Reservation>.Update
+                .Set(s => s.LuxurySeats, reservation.LuxurySeats)
+                .Set(s => s.EconomySeats, reservation.EconomySeats)
+                .Set(s => s.TotalFare, totalFare);
+
+            await _reservationCollection.UpdateOneAsync(filter, update);
 
             return "Reservation updated successfully";
         }
@@ -214,5 +225,14 @@ public class ReservationService : IReservationService
 
         await _trainCollection.UpdateOneAsync(filter, update);
         return 1;
+    }
+
+    public async Task<double> CalculateToralFare(string schedule, int luxurySeats , int economySeats)
+    {
+        var existingSchedule = await _scheduleCollection.Find(t => t.Id == schedule).FirstOrDefaultAsync();
+        double luxuryFare = existingSchedule.LuxuryFare;
+        double economyFare = existingSchedule.EconomyFare;
+        double totalFare = luxuryFare*luxurySeats+economyFare*economySeats;
+        return totalFare;
     }
 }

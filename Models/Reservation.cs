@@ -14,5 +14,6 @@ public class Reservation
     public DateTime ReservedOn { get; set; }
     public int EconomySeats { get; set; }
     public int LuxurySeats { get; set; }
+    public double TotalFare { get; set; }
 
 }

@@ -55,7 +55,9 @@ public class ScheduleService : IScheduleService
             .Set(s => s.ArrivalStation, schedule.ArrivalStation)
             .Set(s => s.DepartureTime, schedule.DepartureTime)
             .Set(s => s.ArrivalTime, schedule.ArrivalTime)
-            .Set(s => s.OperatingDays, schedule.OperatingDays);
+            .Set(s => s.LuxuryFare, schedule.LuxuryFare)
+            .Set(s => s.EconomyFare, schedule.EconomyFare);
+
 
         await _scheduleCollection.UpdateOneAsync(filter, update);
         return "Schedule updated successfully";
