@@ -14,8 +14,8 @@ public class Train
     public bool IsActive { get; set; } = false;
     public int LuxurySeatCount { get; set; }
     public int EconomySeatCount { get; set; }
-    public int OccupiedLuxurySeatCount { get; set; }
-    public int OccupiedEconomySeatCount { get; set; }
+    public int OccupiedLuxurySeatCount { get; set; } = 0;
+    public int OccupiedEconomySeatCount { get; set; } = 0;
 
     [BsonRepresentation(BsonType.ObjectId)]
     public List<string>? Reservations { get; set; }

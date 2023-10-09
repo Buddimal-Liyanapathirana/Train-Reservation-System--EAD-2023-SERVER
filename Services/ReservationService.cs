@@ -49,7 +49,6 @@ public class ReservationService : IReservationService
         if (user.IsActive==false)
             return "Cannot create reservation for inactive user";
 
-        // maximum of 4 reservations
         if (user.ReservationIds?.Count >= 4)
             return "User has reached the maximum limit of reservations";
 
@@ -60,11 +59,21 @@ public class ReservationService : IReservationService
             return "Cannot Place reservations within 5 days";
         }
 
-        await _reservationCollection.InsertOneAsync(reservation);
-
-        // Update Train and User collections 
-        await UpdateTrainAndUserCollections(train.Id, user.NIC, reservation.Id);
-
+        var result = await OccupyTrainSeats(reservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats);
+        if (result == -1)
+        {
+            return "Luxury seat capacity exceeded . Reduce number of seats";
+        }
+        else if (result == -2)
+        {
+            return "Economy seat capacity exceeded . Reduce number of seats";
+        }
+        else
+        {
+            await _reservationCollection.InsertOneAsync(reservation);
+            // Update Train and User collections 
+            await UpdateTrainAndUserCollections(train.Id, user.NIC, reservation.Id);
+        }
         return "Reservation created successfully";
     }
 
@@ -77,17 +86,25 @@ public class ReservationService : IReservationService
 
         if ((reservation.ReservedOn - DateTime.Now).TotalDays < 5)
         {
-            return "Cannot update reservation within 5 days of the reservation date";
+            return "Cannot update within 5 days of the reservation date";
         }
 
-        // Update EconomySeats and LuxurySeats
-        existingReservation.EconomySeats = reservation.EconomySeats;
-        existingReservation.LuxurySeats = reservation.LuxurySeats;
+        var result = await UpdateOccupiedTrainSeats(reservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats , existingReservation.LuxurySeats,existingReservation.EconomySeats);
+        if (result == -1)
+        {
+            return "Luxury seat capacity exceeded . Reduce number of seats";
+        }
+        else if (result == -2)
+        {
+            return "Economy seat capacity exceeded . Reduce number of seats";
+        }
+        else
+        {
+            var filter = Builders<Reservation>.Filter.Eq(r => r.Id, id);
+            await _reservationCollection.ReplaceOneAsync(filter, existingReservation);
 
-        var filter = Builders<Reservation>.Filter.Eq(r => r.Id, id);
-        await _reservationCollection.ReplaceOneAsync(filter, existingReservation);
-
-        return "Reservation updated successfully";
+            return "Reservation updated successfully";
+        }
     }
 
     public async Task<string> DeleteAsync(string id)
@@ -96,19 +113,17 @@ public class ReservationService : IReservationService
         if (reservation == null)
             return "Reservation not found";
 
-        // Check if it's at least 5 days before the reservation date
         if ((reservation.ReservedOn - DateTime.Now).Days < 5)
             return "Cannot delete reservation within 5 days of the reservation date";
 
         await _reservationCollection.DeleteOneAsync(r => r.Id == id);
-
-        // Remove reservation Id from Train and User collections
         await RemoveReservationIdsFromTrainAndUserCollections(reservation.TrainId, reservation.UserNIC, id);
+        await DeOccupyTrainSeats(reservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats);
 
         return "Reservation deleted successfully";
     }
 
-    // Additional methods for updating and removing reservation Ids from Train and User collections
+    //updating reservation Ids from Train and User collections
     private async Task UpdateTrainAndUserCollections(string trainId, string userNIC, string reservationId)
     {
         var filterTrain = Builders<Train>.Filter.Eq(t => t.Id, trainId);
@@ -120,6 +135,7 @@ public class ReservationService : IReservationService
         await _userCollection.UpdateOneAsync(filterUser, updateUser);
     }
 
+    //removing reservation Ids from Train and User collections
     private async Task RemoveReservationIdsFromTrainAndUserCollections(string trainId, string userNIC, string reservationId)
     {
         var filterTrain = Builders<Train>.Filter.Eq(t => t.Id, trainId);
@@ -129,5 +145,71 @@ public class ReservationService : IReservationService
         var filterUser = Builders<User>.Filter.Eq(u => u.NIC, userNIC);
         var updateUser = Builders<User>.Update.Pull(u => u.ReservationIds, reservationId);
         await _userCollection.UpdateOneAsync(filterUser, updateUser);
+    }
+
+    public async Task<int> OccupyTrainSeats(string trainId, int luxurySeats, int economySeats)
+    {
+        var train = await _trainCollection.Find(t => t.Id == trainId).FirstOrDefaultAsync();
+
+        int maxLuxurySeats = train.LuxurySeatCount;
+        int maxEconomySeats = train.EconomySeatCount;
+
+        int UpdatedOccupiedLuxurySeats = train.OccupiedLuxurySeatCount + luxurySeats;
+        int UpdatedOccupiedEconomySeats = train.OccupiedEconomySeatCount + economySeats;
+
+        if (UpdatedOccupiedLuxurySeats > maxLuxurySeats)
+            return -1;
+
+        if (UpdatedOccupiedEconomySeats > maxEconomySeats)
+            return -2;
+
+        var filter = Builders<Train>.Filter.Eq(t => t.Id, trainId);
+        var update = Builders<Train>.Update
+            .Set(t => t.OccupiedLuxurySeatCount, UpdatedOccupiedLuxurySeats)
+            .Set(t => t.OccupiedEconomySeatCount,UpdatedOccupiedEconomySeats);
+
+        await _trainCollection.UpdateOneAsync(filter, update);
+        return 1;
+    }
+
+    public async Task<int> UpdateOccupiedTrainSeats(string trainId, int luxurySeats, int economySeats , int existingLuxurySeats , int existingEconomySeats)
+    {
+        var train = await _trainCollection.Find(t => t.Id == trainId).FirstOrDefaultAsync();
+
+        int maxLuxurySeats = train.LuxurySeatCount;
+        int maxEconomySeats = train.EconomySeatCount;
+
+        int UpdatedOccupiedLuxurySeats = train.OccupiedLuxurySeatCount + luxurySeats - existingLuxurySeats;
+        int UpdatedOccupiedEconomySeats = train.OccupiedEconomySeatCount + economySeats - existingEconomySeats;
+
+        if (UpdatedOccupiedLuxurySeats > maxLuxurySeats)
+            return -1;
+
+        if (UpdatedOccupiedEconomySeats > maxEconomySeats)
+            return -2;
+
+        var filter = Builders<Train>.Filter.Eq(t => t.Id, trainId);
+        var update = Builders<Train>.Update
+            .Set(t => t.OccupiedLuxurySeatCount, UpdatedOccupiedLuxurySeats)
+            .Set(t => t.OccupiedEconomySeatCount, UpdatedOccupiedEconomySeats);
+
+        await _trainCollection.UpdateOneAsync(filter, update);
+        return 1;
+    }
+
+    public async Task<int> DeOccupyTrainSeats(string trainId, int luxurySeats, int economySeats)
+    {
+        var train = await _trainCollection.Find(t => t.Id == trainId).FirstOrDefaultAsync();
+
+        int UpdatedOccupiedLuxurySeats = train.OccupiedLuxurySeatCount - luxurySeats;
+        int UpdatedOccupiedEconomySeats = train.OccupiedEconomySeatCount - economySeats;
+
+        var filter = Builders<Train>.Filter.Eq(t => t.Id, trainId);
+        var update = Builders<Train>.Update
+            .Set(t => t.OccupiedLuxurySeatCount, UpdatedOccupiedLuxurySeats)
+            .Set(t => t.OccupiedEconomySeatCount, UpdatedOccupiedEconomySeats);
+
+        await _trainCollection.UpdateOneAsync(filter, update);
+        return 1;
     }
 }

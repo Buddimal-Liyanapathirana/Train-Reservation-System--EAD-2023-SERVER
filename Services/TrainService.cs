@@ -35,6 +35,9 @@ public class TrainService : ITrainService
         train.IsActive = false;
         train.Reservations = new List<string>();
         train.Schedule = null;
+        // Do not allow altering Reservations, IsActive, and Schedule
+        train.OccupiedEconomySeatCount = 0;
+        train.OccupiedLuxurySeatCount = 0;
 
         await _trainCollection.InsertOneAsync(train);
         return "Train created successfully";
@@ -48,11 +51,6 @@ public class TrainService : ITrainService
 
         if (existingTrain.Reservations != null && existingTrain.Reservations.Count > 0)
             return "Cannot update reserved trains";
-
-        // Do not allow altering Reservations, IsActive, and Schedule
-        newTrain.Reservations = existingTrain.Reservations;
-        newTrain.IsActive = existingTrain.IsActive;
-        newTrain.Schedule = existingTrain.Schedule;
 
         var filter = Builders<Train>.Filter.Eq(t => t.Id, id);
         var update = Builders<Train>.Update
@@ -108,6 +106,8 @@ public class TrainService : ITrainService
 
         train.Schedule = null;
         train.IsActive = false;
+        train.OccupiedLuxurySeatCount = 0;
+        train.OccupiedEconomySeatCount = 0;
 
         await _trainCollection.ReplaceOneAsync(t => t.Id == id, train);
         return "Train deactivated successfully";
