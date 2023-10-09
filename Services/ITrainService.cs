@@ -9,7 +9,6 @@ public interface ITrainService
     Task<string> CreateAsync(Train train);
     Task<string> UpdateAsync(string id, Train train);
     Task<string> AddScheduleAsync(string id, string scheduleId);
-    Task<string> RemoveScheduleAsync(string id);
     Task<string> ActivateTrainAsync(string id);
     Task<string> DeactivateTrainAsync(string id);
     Task<string> DeleteAsync(string id);

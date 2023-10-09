@@ -12,6 +12,7 @@ public class ReservationService : IReservationService
     private readonly IMongoCollection<Train> _trainCollection;
     private readonly IMongoCollection<User> _userCollection;
 
+
     public ReservationService(IOptions<DatabaseSettings> dbSettings)
     {
         var mongoClient = new MongoClient(dbSettings.Value.ConnectionString);
@@ -40,7 +41,10 @@ public class ReservationService : IReservationService
         var train = await _trainCollection.Find(t => t.Id == reservation.TrainId).FirstOrDefaultAsync();
 
         if (user == null || train == null)
-            return "Invalid UserNIC or TrainId";
+            return "Invalid User NIC or Train";
+
+        if (train.IsActive == false)
+            return "Cannot reserve inactive trains";
 
         if (user.IsActive==false)
             return "Cannot create reservation for inactive user";
@@ -80,7 +84,6 @@ public class ReservationService : IReservationService
         existingReservation.EconomySeats = reservation.EconomySeats;
         existingReservation.LuxurySeats = reservation.LuxurySeats;
 
-        // Update the reservation
         var filter = Builders<Reservation>.Filter.Eq(r => r.Id, id);
         await _reservationCollection.ReplaceOneAsync(filter, existingReservation);
 
@@ -89,7 +92,6 @@ public class ReservationService : IReservationService
 
     public async Task<string> DeleteAsync(string id)
     {
-        // Check if the reservation exists
         var reservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
         if (reservation == null)
             return "Reservation not found";
@@ -98,7 +100,6 @@ public class ReservationService : IReservationService
         if ((reservation.ReservedOn - DateTime.Now).Days < 5)
             return "Cannot delete reservation within 5 days of the reservation date";
 
-        // Delete the reservation
         await _reservationCollection.DeleteOneAsync(r => r.Id == id);
 
         // Remove reservation Id from Train and User collections

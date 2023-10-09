@@ -42,60 +42,51 @@ public class TrainController : ControllerBase
     public async Task<IActionResult> Put(string id, [FromBody] Train newTrain)
     {
         var result = await _trainService.UpdateAsync(id, newTrain);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpPut("add-schedule/{id}/{scheduleId}")]
     public async Task<IActionResult> AddSchedule(string id, string scheduleId)
     {
         var result = await _trainService.AddScheduleAsync(id, scheduleId);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [HttpPut("remove-schedule/{id}")]
-    public async Task<IActionResult> RemoveSchedule(string id)
-    {
-        var result = await _trainService.RemoveScheduleAsync(id);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        if (result.Contains("reservations"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
-    }
 
     [HttpPut("activate/{id}")]
     public async Task<IActionResult> ActivateTrain(string id)
     {
         var result = await _trainService.ActivateTrainAsync(id);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpPut("deactivate/{id}")]
     public async Task<IActionResult> DeactivateTrain(string id)
     {
         var result = await _trainService.DeactivateTrainAsync(id);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        if (result.Contains("reservations"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
         var result = await _trainService.DeleteAsync(id);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        if (result.Contains("active"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+        
+        return BadRequest(new ApiResponse<string>(false, result, null));    
     }
 
 }

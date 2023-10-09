@@ -32,7 +32,7 @@ public class TrainService : ITrainService
 
     public async Task<string> CreateAsync(Train train)
     {
-        train.IsActive = true;
+        train.IsActive = false;
         train.Reservations = new List<string>();
         train.Schedule = null;
 
@@ -45,6 +45,9 @@ public class TrainService : ITrainService
         var existingTrain = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (existingTrain == null)
             return "Train not found";
+
+        if (existingTrain.Reservations != null && existingTrain.Reservations.Count > 0)
+            return "Cannot update reserved trains";
 
         // Do not allow altering Reservations, IsActive, and Schedule
         newTrain.Reservations = existingTrain.Reservations;
@@ -67,27 +70,17 @@ public class TrainService : ITrainService
         if (train == null)
             return "Train not found";
 
+        if (train.Reservations != null && train.Reservations.Count > 0)
+            return "Cannot change schedule of reserved trains";
+
         var schedule = await _scheduleCollection.Find(s => s.Id == scheduleId).FirstOrDefaultAsync();
         if (schedule == null)
             return "Schedule not found";
 
+        train.IsActive = true;
         train.Schedule = scheduleId;
         await _trainCollection.ReplaceOneAsync(t => t.Id == id, train);
         return "Schedule added to the train successfully";
-    }
-
-    public async Task<string> RemoveScheduleAsync(string id)
-    {
-        var train = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
-        if (train == null)
-            return "Train not found";
-
-        if (train.Reservations != null && train.Reservations.Count > 0)
-            return "Cannot remove schedule when there are reservations";
-
-        train.Schedule = null;
-        await _trainCollection.ReplaceOneAsync(t => t.Id == id, train);
-        return "Schedule removed from the train successfully";
     }
 
     public async Task<string> ActivateTrainAsync(string id)
@@ -95,6 +88,9 @@ public class TrainService : ITrainService
         var train = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (train == null)
             return "Train not found";
+
+        if (train.Schedule == null)
+            return "Please assign a schedule first";
 
         train.IsActive = true;
         await _trainCollection.ReplaceOneAsync(t => t.Id == id, train);
@@ -110,7 +106,7 @@ public class TrainService : ITrainService
         if (train.Reservations != null && train.Reservations.Count > 0)
             return "Cannot deactivate train with reservations";
 
-        // Remove schedule
+        train.Schedule = null;
         train.IsActive = false;
 
         await _trainCollection.ReplaceOneAsync(t => t.Id == id, train);

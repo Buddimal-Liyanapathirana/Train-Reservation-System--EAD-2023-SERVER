@@ -35,7 +35,7 @@ public class ReservationController : ControllerBase
     public async Task<IActionResult> Post(Reservation reservation)
     {
         var result = await _reservationService.CreateAsync(reservation);
-        if(result.Contains("Reservation created successfully"))
+        if(result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
      
         return BadRequest(new ApiResponse<string>(false, result, null));
@@ -43,9 +43,9 @@ public class ReservationController : ControllerBase
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(string id, Reservation reservation)
-    {
+    {        
         var result = await _reservationService.UpdateAsync(id, reservation);
-        if(result.Contains("Reservation updated successfully"))
+        if(result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
 
         return BadRequest(new ApiResponse<string>(false, result, null));
@@ -55,7 +55,7 @@ public class ReservationController : ControllerBase
     public async Task<IActionResult> Delete(string id)
     {
         var result = await _reservationService.DeleteAsync(id);
-        if (result.Contains("Reservation deleted successfully"))
+        if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
 
         return BadRequest(new ApiResponse<string>(false, result, null));

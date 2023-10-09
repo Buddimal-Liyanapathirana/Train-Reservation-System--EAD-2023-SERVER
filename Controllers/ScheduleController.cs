@@ -36,30 +36,28 @@ namespace MongoDotnetDemo.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Schedule schedule)
         {
-            await _scheduleService.CreateAsync(schedule);
-            return Ok(new ApiResponse<string>(true, "Schedule created successfully", null));
+            var result = await _scheduleService.CreateAsync(schedule);
+            return Ok(new ApiResponse<string>(true, result, null));
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody] Schedule newSchedule)
-        {
-            var schedule = await _scheduleService.GetByIdAsync(id);
-            if (schedule == null)
-                return NotFound(new ApiResponse<string>(false, "Schedule not found", null));
+        {         
+            var result =  await _scheduleService.UpdateAsync(id, newSchedule);
+            if (result.Contains("successfully"))
+                return Ok(new ApiResponse<string>(true, result, null));
 
-            await _scheduleService.UpdateAsync(id, newSchedule);
-            return Ok(new ApiResponse<string>(true, "Schedule updated successfully", null));
+            return BadRequest(new ApiResponse<string>(false, result, null));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            var schedule = await _scheduleService.GetByIdAsync(id);
-            if (schedule == null)
-                return NotFound(new ApiResponse<string>(false, "Schedule not found", null));
+            var result = await _scheduleService.DeleteAsync(id);
+            if (result.Contains("successfully"))
+                return Ok(new ApiResponse<string>(true, result, null));
 
-            await _scheduleService.DeleteAsync(id);
-            return Ok(new ApiResponse<string>(true, "Schedule deleted successfully", null));
+            return BadRequest(new ApiResponse<string>(false, result, null));
         }
     }
 }

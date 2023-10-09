@@ -35,44 +35,49 @@ public class UserController : ControllerBase
     public async Task<IActionResult> Post(User user)
     {
         var result = await _userService.CreateAsync(user);
-        return Ok(new ApiResponse<string>(true, "User created successfully", null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpPut("{nic}")]
     public async Task<IActionResult> Put(string nic, [FromBody] User newUser)
     {
         var result = await _userService.UpdateAsync(nic, newUser);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpPut("activate/{nic}")]
     public async Task<IActionResult> ActivateUser(string nic)
     {
         var result = await _userService.ActivateUserAsync(nic);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpPut("deactivate/{nic}")]
     public async Task<IActionResult> DeactivateUser(string nic)
     {
         var result = await _userService.DeactivateUserAsync(nic);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpDelete("{nic}")]
     public async Task<IActionResult> Delete(string nic)
     {
         var result = await _userService.DeleteAsync(nic);
-        if (result.Contains("not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        if (result.Contains("active"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
-        return Ok(new ApiResponse<string>(true, result, null));
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null)); 
     }
 }

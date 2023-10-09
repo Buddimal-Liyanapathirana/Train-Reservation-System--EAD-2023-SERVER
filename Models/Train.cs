@@ -11,9 +11,11 @@ public class Train
 
     [BsonRepresentation(BsonType.ObjectId)]
     public string? Schedule { get; set; }
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; } = false;
     public int LuxurySeatCount { get; set; }
     public int EconomySeatCount { get; set; }
+    public int OccupiedLuxurySeatCount { get; set; }
+    public int OccupiedEconomySeatCount { get; set; }
 
     [BsonRepresentation(BsonType.ObjectId)]
     public List<string>? Reservations { get; set; }
