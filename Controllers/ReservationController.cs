@@ -35,35 +35,29 @@ public class ReservationController : ControllerBase
     public async Task<IActionResult> Post(Reservation reservation)
     {
         var result = await _reservationService.CreateAsync(reservation);
-        if (result.Contains("Invalid UserNIC or TrainId"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
-        if (result.Contains("User has reached the maximum limit of reservations"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
-
-        return Ok(new ApiResponse<string>(true, result, null));
+        if(result.Contains("Reservation created successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+     
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(string id, Reservation reservation)
     {
         var result = await _reservationService.UpdateAsync(id, reservation);
-        if (result.Contains("Reservation not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        if (result.Contains("Cannot update reservation within 5 days of the reservation date"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
+        if(result.Contains("Reservation updated successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
 
-        return Ok(new ApiResponse<string>(true, result, null));
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
         var result = await _reservationService.DeleteAsync(id);
-        if (result.Contains("Reservation not found"))
-            return NotFound(new ApiResponse<string>(false, result, null));
-        if (result.Contains("Cannot delete reservation within 5 days of the reservation date"))
-            return BadRequest(new ApiResponse<string>(false, result, null));
+        if (result.Contains("Reservation deleted successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
 
-        return Ok(new ApiResponse<string>(true, result, null));
+        return BadRequest(new ApiResponse<string>(false, result, null));
     }
 }

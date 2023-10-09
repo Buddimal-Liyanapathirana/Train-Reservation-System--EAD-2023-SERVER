@@ -45,11 +45,10 @@ public class ReservationService : IReservationService
         if (user.IsActive==false)
             return "Cannot create reservation for inactive user";
 
-        // Check if the user has a maximum of 4 reservations
+        // maximum of 4 reservations
         if (user.ReservationIds?.Count >= 4)
             return "User has reached the maximum limit of reservations";
 
-        // Set CreatedOn and ReservedOn
         reservation.CreatedOn = DateTime.Now;
        
         if ((reservation.ReservedOn - reservation.CreatedOn).TotalDays < 5)
@@ -57,10 +56,9 @@ public class ReservationService : IReservationService
             return "Cannot Place reservations within 5 days";
         }
 
-        // Insert reservation
         await _reservationCollection.InsertOneAsync(reservation);
 
-        // Update Train and User collections with the reservation Id
+        // Update Train and User collections 
         await UpdateTrainAndUserCollections(train.Id, user.NIC, reservation.Id);
 
         return "Reservation created successfully";
@@ -73,9 +71,10 @@ public class ReservationService : IReservationService
         if (existingReservation == null)
             return "Reservation not found";
 
-        // Check if it's at least 5 days before the reservation date
-        if ((existingReservation.ReservedOn - DateTime.Now).Days < 5)
+        if ((reservation.ReservedOn - DateTime.Now).TotalDays < 5)
+        {
             return "Cannot update reservation within 5 days of the reservation date";
+        }
 
         // Update EconomySeats and LuxurySeats
         existingReservation.EconomySeats = reservation.EconomySeats;
