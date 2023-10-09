@@ -6,7 +6,6 @@ public class Reservation
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
-
     public string UserNIC{ get; set; }
 
     [BsonRepresentation(BsonType.ObjectId)]
