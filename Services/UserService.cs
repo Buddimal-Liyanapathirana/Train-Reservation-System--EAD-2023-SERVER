@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDotnetDemo.Models;
+using System.Text.RegularExpressions;
 
 public class UserService : IUserService
 {
@@ -35,7 +36,9 @@ public class UserService : IUserService
     {
         user.IsActive = true;
         user.ReservationIds = new List<string>();
-        if (user.NIC == null || user.NIC =="") {
+        var nicRegex = "^[0-9]{12}$|^[0-9]{9}v$";
+        if (user.NIC == null || !Regex.IsMatch(user.NIC, nicRegex))
+        {
             return "Invalid NIC";
         }
 

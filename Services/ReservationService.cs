@@ -43,6 +43,9 @@ public class ReservationService : IReservationService
         if (user == null || train == null)
             return "Invalid User NIC or Train";
 
+        if (user.Role == "BACK_OFFICER"||user.Role=="TRAVEL_AGENT")
+            return "Invalid user role";
+
         if (train.IsActive == false)
             return "Cannot reserve inactive trains";
 
