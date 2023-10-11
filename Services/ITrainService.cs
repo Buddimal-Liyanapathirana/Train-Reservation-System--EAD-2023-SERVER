@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 public interface ITrainService
 {
     Task<IEnumerable<Train>> GetAllAsync();
+    //Task<IEnumerable<Train>> GetTrainsToReserve(DateTime date,string route , string from , string to);
     Task<Train> GetByIdAsync(string id);
     Task<string> CreateAsync(Train train);
     Task<string> UpdateAsync(string id, Train train);
