@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MongoDotnetDemo.Models;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace MongoDotnetDemo.Controllers
             _scheduleService = scheduleService;
         }
 
+        //[Authorize]
         [HttpGet]
         public async Task<IActionResult> Get()
         {

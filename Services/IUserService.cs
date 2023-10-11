@@ -12,4 +12,7 @@ public interface IUserService
     Task<string> ActivateUserAsync(string nic);
     Task<string> DeactivateUserAsync(string nic);
     Task<string> DeleteAsync(string nic);
+    Task<string> Login(string nic, string password);
+    Task<IEnumerable<User>> GetUsersForActivation();
+    Task<string> RequestActivation(string nic);
 }

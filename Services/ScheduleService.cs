@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDotnetDemo.Models;
+using TrainReservationSystem.Models;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class ScheduleService : IScheduleService
@@ -36,6 +37,28 @@ public class ScheduleService : IScheduleService
 
     public async Task<string> CreateAsync(Schedule schedule)
     {
+        //default operating days
+        schedule.OperatingDays = new HashSet<DayOfWeek>
+        {
+            DayOfWeek.Monday,
+            DayOfWeek.Tuesday,
+            DayOfWeek.Wednesday,
+            DayOfWeek.Thursday,
+            DayOfWeek.Friday
+        };
+
+        //default routes
+        schedule.stopStations = Stations.SOUTH;
+
+        if (schedule.Route.Equals("NORTH"))
+            schedule.stopStations = Stations.NORTH;
+
+        if (schedule.Route.Equals("UPCOUNTRY"))
+            schedule.stopStations = Stations.UPCOUNTRY;
+
+        schedule.DepartureStation = schedule.stopStations.ToArray().FirstOrDefault();
+        schedule.ArrivalStation = schedule.stopStations.ToArray().LastOrDefault();
+
         await _scheduleCollection.InsertOneAsync(schedule);
         return "Schedule created successfully";
     }

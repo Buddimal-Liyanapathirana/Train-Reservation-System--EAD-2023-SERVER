@@ -15,6 +15,7 @@ namespace MongoDotnetDemo.Models
         [EnumDataType(typeof(UserRole))]
         public string Role { get; set; }
         public bool? IsActive { get; set; } = true;
+        public bool? isActivationPending { get; set; } = false;
 
         [BsonRepresentation(BsonType.ObjectId)]
         public List<string>? ReservationIds { get; set; }

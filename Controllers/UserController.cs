@@ -18,8 +18,8 @@ public class UserController : ControllerBase
     {
         var users = await _userService.GetAllAsync();
         return Ok(new ApiResponse<IEnumerable<User>>(true, "User retrieved successfully", users));
-    }
-
+    }  
+    
     [HttpGet("{nic}")]
     public async Task<IActionResult> Get(string nic)
     {
@@ -29,12 +29,34 @@ public class UserController : ControllerBase
             return NotFound(new ApiResponse<string>(false, "User not found", null));
         }
         return Ok(new ApiResponse<User>(true, "User retrieved successfully", user));
+    }    
+    
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(string nic , string password)
+    {
+        string result = await _userService.Login(nic, password);
+
+        if (result.Contains("Invalid"))
+            return BadRequest(new ApiResponse<string>(true, result, null));
+
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> Post(User user)
     {
         var result = await _userService.CreateAsync(user);
+        if (result.Contains("successfully"))
+            return Ok(new ApiResponse<string>(true, result, null));
+
+        return BadRequest(new ApiResponse<string>(false, result, null));
+    }   
+    
+    
+    [HttpPut("requestActivation")]
+    public async Task<IActionResult> RequestActivation(string nic)
+    {
+        var result = await _userService.RequestActivation(nic);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
 

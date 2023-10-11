@@ -5,19 +5,27 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDotnetDemo.Models;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
 
 public class UserService : IUserService
 {
     private readonly IMongoCollection<User> _userCollection;
     private readonly IReservationService _reservationService;
+    private readonly IConfiguration _configuration;
 
 
-    public UserService(IOptions<DatabaseSettings> dbSettings , IReservationService reservationService)
+    public UserService(IOptions<DatabaseSettings> dbSettings , IReservationService reservationService, IConfiguration configuration)
     {
         var mongoClient = new MongoClient(dbSettings.Value.ConnectionString);
         var mongoDatabase = mongoClient.GetDatabase(dbSettings.Value.DatabaseName);
         _userCollection = mongoDatabase.GetCollection<User>(dbSettings.Value.UsersCollectionName);
         _reservationService = reservationService;
+        _configuration = configuration;
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()
@@ -32,6 +40,25 @@ public class UserService : IUserService
         return user;
     }
 
+    public async Task<IEnumerable<User>> GetUsersForActivation()
+    {
+        var users = await _userCollection.Find(u => u.isActivationPending == true).ToListAsync();
+        return users;
+    }
+
+    public async Task<string> Login(string nic, string password)
+    {
+        var existingUser = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
+
+        if (existingUser == null || !BCrypt.Net.BCrypt.Verify(password, existingUser.PasswordHash))
+        {
+            return "Invalid email or password";
+        }
+
+        string token = GenerateToken(existingUser.NIC, existingUser.Role);
+        return token;
+    }
+
     public async Task<string> CreateAsync(User user)
     {
         user.IsActive = true;
@@ -42,6 +69,8 @@ public class UserService : IUserService
             return "Invalid NIC";
         }
 
+        user.isActivationPending = false;    
+        user.PasswordHash = EncryptPassword(user.PasswordHash);
         await _userCollection.InsertOneAsync(user);
         return "User created successfully";
     }
@@ -58,7 +87,7 @@ public class UserService : IUserService
         var filter = Builders<User>.Filter.Eq(u => u.NIC, nic);
         var update = Builders<User>.Update
             .Set(u => u.UserName, newUser.UserName)
-            .Set(u => u.PasswordHash, newUser.PasswordHash)
+            .Set(u => u.PasswordHash, EncryptPassword(newUser.PasswordHash))
             .Set(u => u.Role, newUser.Role);
 
         await _userCollection.UpdateOneAsync(filter, update);
@@ -73,6 +102,7 @@ public class UserService : IUserService
 
         user.IsActive = true;
         user.ReservationIds = new List<string>();
+        user.isActivationPending = false;
 
         await _userCollection.ReplaceOneAsync(u => u.NIC == nic, user);
         return "User activated successfully";
@@ -99,6 +129,25 @@ public class UserService : IUserService
         return "User deactivated successfully";
     }
 
+    public async Task<string> RequestActivation(string nic)
+    {
+        var user = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
+
+        if (user == null)
+            return "User not found";
+        if (user.IsActive == true)
+            return "User is already active";
+
+        user.isActivationPending = true;
+
+        var filter = Builders<User>.Filter.Eq(u => u.NIC, nic);
+        var update = Builders<User>.Update
+            .Set(u => u.isActivationPending, true);
+        await _userCollection.UpdateOneAsync(filter, update);
+
+        return "Activaton request placed successfully";
+    }
+
     public async Task<string> DeleteAsync(string nic)
     {
         var user = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
@@ -110,6 +159,40 @@ public class UserService : IUserService
 
         await _userCollection.DeleteOneAsync(u => u.NIC == nic);
         return "User deleted successfully";
+    }
+
+    private static string EncryptPassword(string password)
+    {
+        // Generate a salt 
+        string salt = BCrypt.Net.BCrypt.GenerateSalt();
+
+        // Hash the password 
+        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
+        return hashedPassword;
+    }
+
+    private string GenerateToken(string id, string role)
+    {
+        List<Claim> claims = new()
+        {
+            new Claim(ClaimTypes.Name, id),
+            new Claim(ClaimTypes.Role, role)
+            };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            _configuration.GetSection("JwtSettings:SecretKey").Value!));
+
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+        var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
+
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+        return jwt;
     }
 
 }

@@ -36,9 +36,16 @@ public class ReservationService : IReservationService
         return reservation;
     }
 
+    public async Task<IEnumerable<Reservation>> GetByUserNicAsync(string userNic)
+    {
+        var reservations = await _reservationCollection.Find(r => r.UserNIC == userNic).ToListAsync();
+        return reservations;
+    }
+
+
     public async Task<string> CreateAsync(Reservation reservation)
     {
-        // Check if UserNIC and TrainId are valid existing documents
+        // Creating the reservation
         var user = await _userCollection.Find(u => u.NIC == reservation.UserNIC).FirstOrDefaultAsync();
         var train = await _trainCollection.Find(t => t.Id == reservation.TrainId).FirstOrDefaultAsync();
 
@@ -57,7 +64,12 @@ public class ReservationService : IReservationService
         if (user.ReservationIds?.Count >= 4)
             return "User has reached the maximum limit of reservations";
 
+        if(reservation.LuxurySeats + reservation.EconomySeats <1)
+            return "Please pick a valid number of seats";
+
         reservation.CreatedOn = DateTime.Now;
+        reservation.isCompleted = false;
+        reservation.completedTrain = null;
        
         if ((reservation.ReservedOn - reservation.CreatedOn).TotalDays < 5)
         {
@@ -85,6 +97,7 @@ public class ReservationService : IReservationService
 
     public async Task<string> UpdateAsync(string id, Reservation reservation)
     {
+        //update reservations
         var existingReservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
         if (existingReservation == null)
             return "Reservation not found";
@@ -123,6 +136,7 @@ public class ReservationService : IReservationService
 
     public async Task<string> DeleteAsync(string id)
     {
+        //delete a reservation
         var reservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
         if (reservation == null)
             return "Reservation not found";
@@ -131,15 +145,46 @@ public class ReservationService : IReservationService
             return "Cannot delete reservation within 5 days of the reservation date";
 
         await _reservationCollection.DeleteOneAsync(r => r.Id == id);
+
+        if(reservation.isCompleted)
+            return "Reservation deleted successfully";
+
         await RemoveReservationIdsFromTrainAndUserCollections(reservation.TrainId, reservation.UserNIC, id);
         await DeOccupyTrainSeats(reservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats);
 
         return "Reservation deleted successfully";
     }
 
-    //updating reservation Ids from Train and User collections
+    public async Task<string> CompleteReservation(string id)
+    {
+        //Completing a reservation
+        var existingReservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
+        if (existingReservation == null)
+            return "Reservation not found";
+
+        var train = await _trainCollection.Find(t => t.Id == existingReservation.TrainId).FirstOrDefaultAsync();
+
+        existingReservation.isCompleted = true;
+        existingReservation.completedTrain = train.TrainName;
+
+
+        var filter = Builders<Reservation>.Filter.Eq(r => r.Id, id);
+        var update = Builders<Reservation>.Update
+            .Set(s => s.isCompleted, existingReservation.isCompleted)
+            .Set(s => s.completedTrain, existingReservation.completedTrain);
+
+        await _reservationCollection.UpdateOneAsync(filter, update);
+
+        await RemoveReservationIdsFromTrainAndUserCollections(existingReservation.TrainId, existingReservation.UserNIC, id);
+        await DeOccupyTrainSeats(existingReservation.TrainId, existingReservation.LuxurySeats, existingReservation.EconomySeats);
+
+        return "Reservation is completed";
+    }
+
+    
     private async Task UpdateTrainAndUserCollections(string trainId, string userNIC, string reservationId)
     {
+        //updating reservation Ids list from Train and User collections
         var filterTrain = Builders<Train>.Filter.Eq(t => t.Id, trainId);
         var updateTrain = Builders<Train>.Update.Push(t => t.Reservations, reservationId);
         await _trainCollection.UpdateOneAsync(filterTrain, updateTrain);
@@ -149,9 +194,10 @@ public class ReservationService : IReservationService
         await _userCollection.UpdateOneAsync(filterUser, updateUser);
     }
 
-    //removing reservation Ids from Train and User collections
+    
     private async Task RemoveReservationIdsFromTrainAndUserCollections(string trainId, string userNIC, string reservationId)
     {
+        //removing reservation Ids from Train and User reservation list
         var filterTrain = Builders<Train>.Filter.Eq(t => t.Id, trainId);
         var updateTrain = Builders<Train>.Update.Pull(t => t.Reservations, reservationId);
         await _trainCollection.UpdateOneAsync(filterTrain, updateTrain);
@@ -163,6 +209,7 @@ public class ReservationService : IReservationService
 
     public async Task<int> OccupyTrainSeats(string trainId, int luxurySeats, int economySeats)
     {
+        //occupy seats from train upon creation of a reservation
         var train = await _trainCollection.Find(t => t.Id == trainId).FirstOrDefaultAsync();
 
         int maxLuxurySeats = train.LuxurySeatCount;
@@ -188,6 +235,7 @@ public class ReservationService : IReservationService
 
     public async Task<int> UpdateOccupiedTrainSeats(string trainId, int luxurySeats, int economySeats , int existingLuxurySeats , int existingEconomySeats)
     {
+        //update occupied seats from train upon update of a reservation
         var train = await _trainCollection.Find(t => t.Id == trainId).FirstOrDefaultAsync();
 
         int maxLuxurySeats = train.LuxurySeatCount;
@@ -213,6 +261,7 @@ public class ReservationService : IReservationService
 
     public async Task<int> DeOccupyTrainSeats(string trainId, int luxurySeats, int economySeats)
     {
+        //Remove occupied seats from train upon deletion or completion of a reservation
         var train = await _trainCollection.Find(t => t.Id == trainId).FirstOrDefaultAsync();
 
         int UpdatedOccupiedLuxurySeats = train.OccupiedLuxurySeatCount - luxurySeats;
@@ -229,6 +278,7 @@ public class ReservationService : IReservationService
 
     public async Task<double> CalculateToralFare(string schedule, int luxurySeats , int economySeats)
     {
+        //calculates total fare for a reservation based on distance and number of seats
         var existingSchedule = await _scheduleCollection.Find(t => t.Id == schedule).FirstOrDefaultAsync();
         double luxuryFare = existingSchedule.LuxuryFare;
         double economyFare = existingSchedule.EconomyFare;

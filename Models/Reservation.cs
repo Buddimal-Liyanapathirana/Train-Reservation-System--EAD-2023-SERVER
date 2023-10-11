@@ -15,5 +15,7 @@ public class Reservation
     public int EconomySeats { get; set; }
     public int LuxurySeats { get; set; }
     public double TotalFare { get; set; }
+    public bool isCompleted { get; set; }
+    public string completedTrain {  get; set; }
 
 }

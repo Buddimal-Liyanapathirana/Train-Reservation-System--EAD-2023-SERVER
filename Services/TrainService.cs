@@ -39,6 +39,13 @@ public class TrainService : ITrainService
         train.OccupiedEconomySeatCount = 0;
         train.OccupiedLuxurySeatCount = 0;
 
+        if (train.LuxurySeatCount == 0 || train.LuxurySeatCount == null)
+            train.LuxurySeatCount = 50;
+
+        if (train.EconomySeatCount == 0 || train.EconomySeatCount == null)
+            train.EconomySeatCount = 50;
+
+
         await _trainCollection.InsertOneAsync(train);
         return "Train created successfully";
     }
