@@ -20,6 +20,7 @@ namespace MongoDotnetDemo.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
+            //get all schedules
             var schedules = await _scheduleService.GetAllAsync();
             return Ok(new ApiResponse<IEnumerable<Schedule>>(true, "Schedules retrieved successfully", schedules));
         }
@@ -27,6 +28,7 @@ namespace MongoDotnetDemo.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
+            //get schedule by id
             var schedule = await _scheduleService.GetByIdAsync(id);
             if (schedule == null)
             {
@@ -38,13 +40,15 @@ namespace MongoDotnetDemo.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Schedule schedule)
         {
+            //create schedule
             var result = await _scheduleService.CreateAsync(schedule);
             return Ok(new ApiResponse<string>(true, result, null));
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody] Schedule newSchedule)
-        {         
+        {      
+            //update schdeule
             var result =  await _scheduleService.UpdateAsync(id, newSchedule);
             if (result.Contains("successfully"))
                 return Ok(new ApiResponse<string>(true, result, null));
@@ -55,6 +59,7 @@ namespace MongoDotnetDemo.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
+            //delete schedule
             var result = await _scheduleService.DeleteAsync(id);
             if (result.Contains("successfully"))
                 return Ok(new ApiResponse<string>(true, result, null));

@@ -25,12 +25,14 @@ public class ScheduleService : IScheduleService
 
     public async Task<IEnumerable<Schedule>> GetAllAsync()
     {
+        //get all schedules
         var schedules = await _scheduleCollection.Find(_ => true).ToListAsync();
         return schedules;
     }
 
     public async Task<Schedule> GetByIdAsync(string id)
     {
+        //get schedule by id
         var schedule = await _scheduleCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
         return schedule;
     }
@@ -65,6 +67,8 @@ public class ScheduleService : IScheduleService
 
     public async Task<string> UpdateAsync(string id, Schedule schedule)
     {
+        //updates schedules
+        //only schedules that are not occupied by trains can be deleted
         var existingSchedule = await _scheduleCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (existingSchedule == null)
             return "Schedule not found";
@@ -88,6 +92,8 @@ public class ScheduleService : IScheduleService
 
     public async Task<string> DeleteAsync(string id)
     {
+        //deletes a schedule
+        //only schedules that are unoccupied by trains can be deleted
         var existingSchedule = await _scheduleCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (existingSchedule == null)
             return "Schedule not found";
@@ -105,6 +111,7 @@ public class ScheduleService : IScheduleService
 
     public async Task<bool> IsScheduleNotInUse(string id)
     {
+        //checks if a schedule is used by a train
         var trains = await _trainService.GetAllAsync();
         bool isAssigned = true;
 

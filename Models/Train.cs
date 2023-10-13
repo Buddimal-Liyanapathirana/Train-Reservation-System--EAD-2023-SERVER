@@ -19,4 +19,12 @@ public class Train
 
     [BsonRepresentation(BsonType.ObjectId)]
     public List<string>? Reservations { get; set; }
+
+    public Train(string trainName, int luxurySeatCount, int economySeatCount)
+    {
+        Id = ObjectId.GenerateNewId().ToString();
+        TrainName = trainName;
+        LuxurySeatCount = luxurySeatCount;
+        EconomySeatCount = economySeatCount;
+    }
 }

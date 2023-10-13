@@ -24,6 +24,7 @@ public class UserController : ControllerBase
     [HttpGet("{nic}")]
     public async Task<IActionResult> Get(string nic)
     {
+        //get user
         var user = await _userService.GetByIdAsync(nic);
         if (user == null)
         {
@@ -35,6 +36,7 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
     {
+        //locin for user
         string result = await _userService.Login(loginDTO.nic, loginDTO.password);
 
         if (result.Contains("Invalid"))
@@ -46,6 +48,7 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post(User user)
     {
+        //create user
         var result = await _userService.CreateAsync(user);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -57,6 +60,7 @@ public class UserController : ControllerBase
     [HttpPut("requestActivation")]
     public async Task<IActionResult> RequestActivation(string nic)
     {
+        //request activation for user
         var result = await _userService.RequestActivation(nic);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -67,6 +71,7 @@ public class UserController : ControllerBase
     [HttpPut("{nic}")]
     public async Task<IActionResult> Put(string nic, [FromBody] User newUser)
     {
+        //update user
         var result = await _userService.UpdateAsync(nic, newUser);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -77,6 +82,7 @@ public class UserController : ControllerBase
     [HttpPut("activate/{nic}")]
     public async Task<IActionResult> ActivateUser(string nic)
     {
+        //activate user
         var result = await _userService.ActivateUserAsync(nic);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -87,6 +93,7 @@ public class UserController : ControllerBase
     [HttpPut("deactivate/{nic}")]
     public async Task<IActionResult> DeactivateUser(string nic)
     {
+        //deactivate user
         var result = await _userService.DeactivateUserAsync(nic);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -97,6 +104,7 @@ public class UserController : ControllerBase
     [HttpDelete("{nic}")]
     public async Task<IActionResult> Delete(string nic)
     {
+        //delete user
         var result = await _userService.DeleteAsync(nic);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));

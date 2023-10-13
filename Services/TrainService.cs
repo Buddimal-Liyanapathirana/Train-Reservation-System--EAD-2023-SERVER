@@ -20,22 +20,24 @@ public class TrainService : ITrainService
 
     public async Task<IEnumerable<Train>> GetAllAsync()
     {
+        //get all trains
         var trains = await _trainCollection.Find(_ => true).ToListAsync();
         return trains;
     }
 
     public async Task<Train> GetByIdAsync(string id)
     {
+        //get train by id
         var train = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         return train;
     }
 
     public async Task<string> CreateAsync(Train train)
     {
+        //create a train
         train.IsActive = false;
         train.Reservations = new List<string>();
         train.Schedule = null;
-        // Do not allow altering Reservations, IsActive, and Schedule
         train.OccupiedEconomySeatCount = 0;
         train.OccupiedLuxurySeatCount = 0;
 
@@ -52,6 +54,7 @@ public class TrainService : ITrainService
 
     public async Task<string> UpdateAsync(string id, Train newTrain)
     {
+        //updates a train
         var existingTrain = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (existingTrain == null)
             return "Train not found";
@@ -71,6 +74,7 @@ public class TrainService : ITrainService
 
     public async Task<string> AddScheduleAsync(string id, string scheduleId)
     {
+        //assign a schedule to a train
         var train = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (train == null)
             return "Train not found";
@@ -90,6 +94,8 @@ public class TrainService : ITrainService
 
     public async Task<string> ActivateTrainAsync(string id)
     {
+        //activates a train
+        //only train with a schedule can be activated
         var train = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (train == null)
             return "Train not found";
@@ -104,6 +110,8 @@ public class TrainService : ITrainService
 
     public async Task<string> DeactivateTrainAsync(string id)
     {
+        //deactivate train
+        //only unreserved trains can be deactivated
         var train = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (train == null)
             return "Train not found";
@@ -122,6 +130,7 @@ public class TrainService : ITrainService
 
     public async Task<string> DeleteAsync(string id)
     {
+        //delete train
         var train = await _trainCollection.Find(t => t.Id == id).FirstOrDefaultAsync();
         if (train == null)
             return "Train not found";

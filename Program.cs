@@ -60,6 +60,7 @@ builder.Services.AddTransient<ITrainService, TrainService>();
 //resolving the TrainService
 builder.Services.AddTransient<IReservationService, ReservationService>();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

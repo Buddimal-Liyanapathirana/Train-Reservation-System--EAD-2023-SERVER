@@ -9,8 +9,6 @@ namespace MongoDotnetDemo.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-
-
         public string DepartureStation { get; set; }
         public string ArrivalStation { get; set; }
 

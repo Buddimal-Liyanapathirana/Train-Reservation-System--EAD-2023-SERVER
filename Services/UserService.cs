@@ -30,24 +30,28 @@ public class UserService : IUserService
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
+        //get all users
         var users = await _userCollection.Find(_ => true).ToListAsync();
         return users;
     }
 
     public async Task<User> GetByIdAsync(string nic)
     {
+        //get users by id
         var user = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
         return user;
     }
 
     public async Task<IEnumerable<User>> GetUsersForActivation()
     {
+        //get users that equested activation
         var users = await _userCollection.Find(u => u.isActivationPending == true).ToListAsync();
         return users;
     }
 
     public async Task<string> Login(string nic, string password)
     {
+        //login for user
         var existingUser = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
 
         if (existingUser == null || !BCrypt.Net.BCrypt.Verify(password, existingUser.PasswordHash))
@@ -61,6 +65,7 @@ public class UserService : IUserService
 
     public async Task<string> CreateAsync(User user)
     {
+        //creates user
         user.IsActive = true;
         user.ReservationIds = new List<string>();
         var nicRegex = "^[0-9]{12}$|^[0-9]{9}v$";
@@ -77,6 +82,7 @@ public class UserService : IUserService
 
     public async Task<string> UpdateAsync(string nic, User newUser)
     {
+        //updates user
         var existingUser = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
         if (existingUser == null)
             return "User not found";
@@ -96,6 +102,7 @@ public class UserService : IUserService
 
     public async Task<string> ActivateUserAsync(string nic)
     {
+        //set user isctive status
         var user = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
         if (user == null)
             return "User not found";
@@ -110,6 +117,7 @@ public class UserService : IUserService
 
     public async Task<string> DeactivateUserAsync(string nic)
     {
+        //deactvate a user
         var user = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
         if (user == null)
             return "User not found";
@@ -131,6 +139,7 @@ public class UserService : IUserService
 
     public async Task<string> RequestActivation(string nic)
     {
+        //request for activation by inactive users
         var user = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
 
         if (user == null)
@@ -150,6 +159,7 @@ public class UserService : IUserService
 
     public async Task<string> DeleteAsync(string nic)
     {
+        //delete user
         var user = await _userCollection.Find(u => u.NIC == nic).FirstOrDefaultAsync();
         if (user == null)
             return "User not found";
@@ -163,6 +173,7 @@ public class UserService : IUserService
 
     private static string EncryptPassword(string password)
     {
+        //encrypt user password
         // Generate a salt 
         string salt = BCrypt.Net.BCrypt.GenerateSalt();
 
@@ -173,6 +184,7 @@ public class UserService : IUserService
 
     private string GenerateToken(string id, string role)
     {
+        //generate jwt token for authorization
         List<Claim> claims = new()
         {
             new Claim(ClaimTypes.Name, id),

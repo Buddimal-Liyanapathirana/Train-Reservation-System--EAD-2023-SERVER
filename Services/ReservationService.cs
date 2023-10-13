@@ -26,18 +26,21 @@ public class ReservationService : IReservationService
 
     public async Task<IEnumerable<Reservation>> GetAllAsync()
     {
+        //get all reservations
         var reservations = await _reservationCollection.Find(_ => true).ToListAsync();
         return reservations;
     }
 
     public async Task<Reservation> GetByIdAsync(string id)
     {
+        //get reservation by id
         var reservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
         return reservation;
     }
 
     public async Task<IEnumerable<Reservation>> GetByUserNicAsync(string userNic)
     {
+        //get reservations by user
         var reservations = await _reservationCollection.Find(r => r.UserNIC == userNic).ToListAsync();
         return reservations;
     }
@@ -157,7 +160,7 @@ public class ReservationService : IReservationService
 
     public async Task<string> CompleteReservation(string id)
     {
-        //Completing a reservation
+        //marks reservation as complete . this is displayed in reservation history
         var existingReservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
         if (existingReservation == null)
             return "Reservation not found";

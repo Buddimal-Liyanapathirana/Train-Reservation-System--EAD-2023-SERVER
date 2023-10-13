@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDotnetDemo.Models;
 using System.Threading.Tasks;
+using TrainReservationSystem.DTO;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -16,6 +17,7 @@ public class TrainController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
+        //get all trains
         var trains = await _trainService.GetAllAsync();
         return Ok(new ApiResponse<IEnumerable<Train>>(true, "Trains retrieved successfully", trains));
     }
@@ -23,6 +25,7 @@ public class TrainController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(string id)
     {
+        //get train by id
         var train = await _trainService.GetByIdAsync(id);
         if (train == null)
         {
@@ -32,15 +35,19 @@ public class TrainController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post(Train train)
+    public async Task<IActionResult> Post([FromBody] CreateTrainDTO createTrainDTO)
     {
-        var result = await _trainService.CreateAsync(train);
+        //create train
+        Train newTrain = new Train(createTrainDTO.trainName, createTrainDTO.luxurySeatCount, createTrainDTO.economySeatCount);
+        var result = await _trainService.CreateAsync(newTrain);
         return Ok(new ApiResponse<string>(true, result, null));
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(string id, [FromBody] Train newTrain)
+    public async Task<IActionResult> Put(string id, [FromBody] CreateTrainDTO createTrainDTO)
     {
+        //update train
+        Train newTrain = new Train(createTrainDTO.trainName, createTrainDTO.luxurySeatCount, createTrainDTO.economySeatCount);
         var result = await _trainService.UpdateAsync(id, newTrain);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -51,6 +58,7 @@ public class TrainController : ControllerBase
     [HttpPut("add-schedule/{id}/{scheduleId}")]
     public async Task<IActionResult> AddSchedule(string id, string scheduleId)
     {
+        //assign schedule to train
         var result = await _trainService.AddScheduleAsync(id, scheduleId);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -62,6 +70,7 @@ public class TrainController : ControllerBase
     [HttpPut("activate/{id}")]
     public async Task<IActionResult> ActivateTrain(string id)
     {
+        //activate train
         var result = await _trainService.ActivateTrainAsync(id);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -72,6 +81,7 @@ public class TrainController : ControllerBase
     [HttpPut("deactivate/{id}")]
     public async Task<IActionResult> DeactivateTrain(string id)
     {
+        //deactivate train
         var result = await _trainService.DeactivateTrainAsync(id);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -82,6 +92,7 @@ public class TrainController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
+        //delete train
         var result = await _trainService.DeleteAsync(id);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
