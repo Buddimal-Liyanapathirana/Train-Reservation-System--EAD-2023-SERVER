@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDotnetDemo.Models;
 using System.Threading.Tasks;
+using TrainReservationSystem.DTO;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -18,8 +19,8 @@ public class UserController : ControllerBase
     {
         var users = await _userService.GetAllAsync();
         return Ok(new ApiResponse<IEnumerable<User>>(true, "User retrieved successfully", users));
-    }  
-    
+    }
+
     [HttpGet("{nic}")]
     public async Task<IActionResult> Get(string nic)
     {
@@ -29,12 +30,12 @@ public class UserController : ControllerBase
             return NotFound(new ApiResponse<string>(false, "User not found", null));
         }
         return Ok(new ApiResponse<User>(true, "User retrieved successfully", user));
-    }    
-    
+    }
+
     [HttpPost("login")]
-    public async Task<IActionResult> Login(string nic , string password)
+    public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
     {
-        string result = await _userService.Login(nic, password);
+        string result = await _userService.Login(loginDTO.nic, loginDTO.password);
 
         if (result.Contains("Invalid"))
             return BadRequest(new ApiResponse<string>(true, result, null));

@@ -10,4 +10,5 @@ public interface IReservationService
     Task<string> UpdateAsync(string id, Reservation reservation);
     Task<string> DeleteAsync(string id);
     Task<string> CompleteReservation(string id);
+    //Task<string> LookupByRoute(string id);
 }

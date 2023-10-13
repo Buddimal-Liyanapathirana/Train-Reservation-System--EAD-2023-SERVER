@@ -56,7 +56,7 @@ public class UserService : IUserService
         }
 
         string token = GenerateToken(existingUser.NIC, existingUser.Role);
-        return token;
+        return token  ;
     }
 
     public async Task<string> CreateAsync(User user)
