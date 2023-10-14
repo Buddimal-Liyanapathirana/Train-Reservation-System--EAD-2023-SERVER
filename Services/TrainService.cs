@@ -35,12 +35,14 @@ public class TrainService : ITrainService
     public async Task<string> CreateAsync(Train train)
     {
         //create a train
+        //set default values
         train.IsActive = false;
         train.Reservations = new List<string>();
         train.Schedule = null;
         train.OccupiedEconomySeatCount = 0;
         train.OccupiedLuxurySeatCount = 0;
 
+        //default seat counts
         if (train.LuxurySeatCount == 0 || train.LuxurySeatCount == null)
             train.LuxurySeatCount = 50;
 

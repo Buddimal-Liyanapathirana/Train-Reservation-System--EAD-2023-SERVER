@@ -79,7 +79,7 @@ public class ReservationService : IReservationService
             return "Cannot Place reservations within 5 days";
         }
 
-        var result = await OccupyTrainSeats(reservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats);
+        var result = await OccupyTrainSeats(reservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats );
         if (result == -1)
         {
             return "Luxury seat capacity exceeded . Reduce number of seats";
@@ -90,7 +90,7 @@ public class ReservationService : IReservationService
         }
         else
         {
-            double totalFare = await CalculateToralFare(train.Schedule , reservation.LuxurySeats , reservation.EconomySeats);
+            double totalFare = await CalculateToralFare(train.Schedule , reservation.LuxurySeats , reservation.EconomySeats, reservation.startStation, reservation.endStation);
             reservation.TotalFare = totalFare;
             await _reservationCollection.InsertOneAsync(reservation);
             await UpdateTrainAndUserCollections(train.Id, user.NIC, reservation.Id);
@@ -123,13 +123,15 @@ public class ReservationService : IReservationService
         }
         else
         {
-            double totalFare = await CalculateToralFare(train.Schedule, reservation.LuxurySeats, reservation.EconomySeats);
+            double newTotalFare = await CalculateToralFare(train.Schedule, reservation.LuxurySeats, reservation.EconomySeats, reservation.startStation, reservation.endStation);
 
             var filter = Builders<Reservation>.Filter.Eq(r => r.Id, id);
             var update = Builders<Reservation>.Update
                 .Set(s => s.LuxurySeats, reservation.LuxurySeats)
-                .Set(s => s.EconomySeats, reservation.EconomySeats)
-                .Set(s => s.TotalFare, totalFare);
+                .Set(s => s.LuxurySeats, reservation.LuxurySeats)
+                .Set(s => s.startStation, reservation.startStation)
+                .Set(s => s.endStation, reservation.endStation)
+                .Set(s => s.TotalFare, newTotalFare);
 
             await _reservationCollection.UpdateOneAsync(filter, update);
 
@@ -279,13 +281,20 @@ public class ReservationService : IReservationService
         return 1;
     }
 
-    public async Task<double> CalculateToralFare(string schedule, int luxurySeats , int economySeats)
+    public async Task<double> CalculateToralFare(string scheduleID, int luxurySeats , int economySeats, string startStation , string endStation)
     {
         //calculates total fare for a reservation based on distance and number of seats
-        var existingSchedule = await _scheduleCollection.Find(t => t.Id == schedule).FirstOrDefaultAsync();
+        var existingSchedule = await _scheduleCollection.Find(t => t.Id == scheduleID).FirstOrDefaultAsync();
+        List<string> stations = existingSchedule.stopStations.ToList();
+
+        //calculates gap between start and end stations
+        int startIndex = stations.IndexOf(startStation);
+        int endIndex = stations.IndexOf(endStation);
+        int stationsBetween = Math.Abs(endIndex - startIndex);
+
         double luxuryFare = existingSchedule.LuxuryFare;
         double economyFare = existingSchedule.EconomyFare;
         double totalFare = luxuryFare*luxurySeats+economyFare*economySeats;
-        return totalFare;
+        return totalFare* stationsBetween;
     }
 }

@@ -39,15 +39,18 @@ public class ScheduleService : IScheduleService
 
     public async Task<string> CreateAsync(Schedule schedule)
     {
-        //default operating days
-        schedule.OperatingDays = new HashSet<DayOfWeek>
+        if (schedule.OperatingDays == null)
         {
-            DayOfWeek.Monday,
-            DayOfWeek.Tuesday,
-            DayOfWeek.Wednesday,
-            DayOfWeek.Thursday,
-            DayOfWeek.Friday
-        };
+            schedule.OperatingDays = new HashSet<DayOfWeek>
+            {
+                //default operating days
+                DayOfWeek.Monday,
+                DayOfWeek.Tuesday,
+                DayOfWeek.Wednesday,
+                DayOfWeek.Thursday,
+                DayOfWeek.Friday
+            };
+        }
 
         //default routes
         schedule.stopStations = Stations.SOUTH;
@@ -75,16 +78,22 @@ public class ScheduleService : IScheduleService
 
         if (!await IsScheduleNotInUse(id))
             return "Cannot update a schedule in use";
-        
+
+        schedule.stopStations = Stations.SOUTH;
+
+        if (schedule.Route.Equals("NORTH"))
+            schedule.stopStations = Stations.NORTH;
+
+        if (schedule.Route.Equals("UPCOUNTRY"))
+            schedule.stopStations = Stations.UPCOUNTRY;
+
         var filter = Builders<Schedule>.Filter.Eq(s => s.Id, id);
         var update = Builders<Schedule>.Update
-            .Set(s => s.DepartureStation, schedule.DepartureStation)
-            .Set(s => s.ArrivalStation, schedule.ArrivalStation)
+            .Set(s => s.Route, schedule.Route)
             .Set(s => s.DepartureTime, schedule.DepartureTime)
             .Set(s => s.ArrivalTime, schedule.ArrivalTime)
             .Set(s => s.LuxuryFare, schedule.LuxuryFare)
             .Set(s => s.EconomyFare, schedule.EconomyFare);
-
 
         await _scheduleCollection.UpdateOneAsync(filter, update);
         return "Schedule updated successfully";
