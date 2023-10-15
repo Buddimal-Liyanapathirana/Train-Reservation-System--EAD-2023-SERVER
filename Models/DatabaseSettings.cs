@@ -8,5 +8,6 @@
         public string? TrainsCollectionName { get; set; }
         public string? ReservationsCollectionName { get; set; }
         public string? SchedulesCollectionName { get; set; }
+        public string? RoutesCollectionName { get; set; }
     }
 }

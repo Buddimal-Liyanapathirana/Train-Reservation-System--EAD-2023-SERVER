@@ -19,5 +19,7 @@ public class Reservation
     public double TotalFare { get; set; }
     public bool isCompleted { get; set; }
     public string completedTrain {  get; set; }
+    public bool isRequested { get; set; }
+    public string RequestedBy { get; set; }
 
 }

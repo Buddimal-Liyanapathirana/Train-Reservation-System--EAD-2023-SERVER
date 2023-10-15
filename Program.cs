@@ -60,6 +60,9 @@ builder.Services.AddTransient<ITrainService, TrainService>();
 //resolving the TrainService
 builder.Services.AddTransient<IReservationService, ReservationService>();
 
+//resolving the RoutesService
+builder.Services.AddTransient<IRouteService, RouteService>();
+
 
 var app = builder.Build();
 

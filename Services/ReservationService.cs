@@ -131,6 +131,7 @@ public class ReservationService : IReservationService
                 .Set(s => s.LuxurySeats, reservation.LuxurySeats)
                 .Set(s => s.startStation, reservation.startStation)
                 .Set(s => s.endStation, reservation.endStation)
+                .Set(s => s.ReservedOn, reservation.ReservedOn)
                 .Set(s => s.TotalFare, newTotalFare);
 
             await _reservationCollection.UpdateOneAsync(filter, update);
@@ -295,6 +296,6 @@ public class ReservationService : IReservationService
         double luxuryFare = existingSchedule.LuxuryFare;
         double economyFare = existingSchedule.EconomyFare;
         double totalFare = luxuryFare*luxurySeats+economyFare*economySeats;
-        return totalFare* stationsBetween;
+        return totalFare * stationsBetween;
     }
 }

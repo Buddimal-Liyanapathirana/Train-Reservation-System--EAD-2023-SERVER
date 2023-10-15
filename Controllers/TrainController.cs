@@ -22,6 +22,14 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<IEnumerable<Train>>(true, "Trains retrieved successfully", trains));
     }
 
+    [HttpGet("/active")]
+    public async Task<IActionResult> GetActiveTrains()
+    {
+        //get all active trains
+        var trains = await _trainService.GetActiveTrains();
+        return Ok(new ApiResponse<IEnumerable<ActiveTrainsForBooking>>(true, "Trains retrieved successfully", trains));
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(string id)
     {
