@@ -36,13 +36,13 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
     {
-        //locin for user
+        //login for user
         string result = await _userService.Login(loginDTO.nic, loginDTO.password);
 
         if (result.Contains("Invalid"))
-            return BadRequest(new ApiResponse<string>(true, result, null));
+            return BadRequest(new ApiResponse<string>(false, result, null));
 
-        return Ok(result);
+        return Ok(new ApiResponse<string>(true, "User logged in successfully", result));
     }
 
     [HttpPost]
