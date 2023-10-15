@@ -13,14 +13,16 @@ public class ScheduleService : IScheduleService
     private readonly IMongoCollection<Schedule> _scheduleCollection;
     private readonly IOptions<DatabaseSettings> _dbSettings;
     private readonly ITrainService _trainService;
+    private readonly IRouteService _routeService;
 
-    public ScheduleService(IOptions<DatabaseSettings> dbSettings , ITrainService trainService)
+    public ScheduleService(IOptions<DatabaseSettings> dbSettings , ITrainService trainService, IRouteService routeService)
     {
         _dbSettings = dbSettings;
         var mongoClient = new MongoClient(dbSettings.Value.ConnectionString);
         var mongoDatabase = mongoClient.GetDatabase(dbSettings.Value.DatabaseName);
         _scheduleCollection = mongoDatabase.GetCollection<Schedule>(dbSettings.Value.SchedulesCollectionName);
         _trainService = trainService;
+        _routeService = routeService;
     }
 
     public async Task<IEnumerable<Schedule>> GetAllAsync()
@@ -39,6 +41,11 @@ public class ScheduleService : IScheduleService
 
     public async Task<string> CreateAsync(Schedule schedule)
     {
+        var route = await _routeService.GetByNameAsync(schedule.Route);
+
+        if(route==null)
+            return "Route for the given name does not exist";
+
         if (schedule.OperatingDays == null)
         {
             schedule.OperatingDays = new HashSet<DayOfWeek>
@@ -53,13 +60,8 @@ public class ScheduleService : IScheduleService
         }
 
         //default routes
-        schedule.stopStations = Stations.SOUTH;
-
-        if (schedule.Route.Equals("NORTH"))
-            schedule.stopStations = Stations.NORTH;
-
-        if (schedule.Route.Equals("UPCOUNTRY"))
-            schedule.stopStations = Stations.UPCOUNTRY;
+        schedule.Route = route.Name;
+        schedule.stopStations = route.Stations;
 
         schedule.DepartureStation = schedule.stopStations.ToArray().FirstOrDefault();
         schedule.ArrivalStation = schedule.stopStations.ToArray().LastOrDefault();
@@ -79,13 +81,14 @@ public class ScheduleService : IScheduleService
         if (!await IsScheduleNotInUse(id))
             return "Cannot update a schedule in use";
 
-        schedule.stopStations = Stations.SOUTH;
+        var route = await _routeService.GetByNameAsync(schedule.Route);
 
-        if (schedule.Route.Equals("NORTH"))
-            schedule.stopStations = Stations.NORTH;
+        if (route == null)
+            return "Route for the given name does not exist";
 
-        if (schedule.Route.Equals("UPCOUNTRY"))
-            schedule.stopStations = Stations.UPCOUNTRY;
+        schedule.stopStations = route.Stations;
+        schedule.DepartureStation = schedule.stopStations.ToArray().FirstOrDefault();
+        schedule.ArrivalStation = schedule.stopStations.ToArray().LastOrDefault();
 
         var filter = Builders<Schedule>.Filter.Eq(s => s.Id, id);
         var update = Builders<Schedule>.Update
@@ -93,7 +96,11 @@ public class ScheduleService : IScheduleService
             .Set(s => s.DepartureTime, schedule.DepartureTime)
             .Set(s => s.ArrivalTime, schedule.ArrivalTime)
             .Set(s => s.LuxuryFare, schedule.LuxuryFare)
-            .Set(s => s.EconomyFare, schedule.EconomyFare);
+            .Set(s => s.EconomyFare, schedule.EconomyFare)
+            .Set(s => s.stopStations, schedule.stopStations)
+            .Set(s => s.OperatingDays, schedule.OperatingDays)
+            .Set(s => s.DepartureStation, schedule.DepartureStation)
+            .Set(s => s.ArrivalStation, schedule.ArrivalStation);
 
         await _scheduleCollection.UpdateOneAsync(filter, update);
         return "Schedule updated successfully";

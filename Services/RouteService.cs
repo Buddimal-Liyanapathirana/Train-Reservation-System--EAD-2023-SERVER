@@ -30,6 +30,9 @@ public class RouteService : IRouteService
 
     public async Task<string> CreateAsync(Route route)
     {
+        if(route.Name == "")
+            return "Invalid route name";
+
         await _routeCollection.InsertOneAsync(route);
         return "Route created successfully";
     }

@@ -11,8 +11,6 @@ namespace MongoDotnetDemo.Models
         public string Id { get; set; }
         public string DepartureStation { get; set; }
         public string ArrivalStation { get; set; }
-
-        [EnumDataType(typeof(RouteTypes))]
         public string Route { get; set; }
         public bool IsdirectionUp { get; set; }
         public HashSet<string> stopStations { get; set; }
@@ -23,13 +21,6 @@ namespace MongoDotnetDemo.Models
 
         // Days of operation
         public HashSet<DayOfWeek> OperatingDays { get; set; }
-
-        public enum RouteTypes
-        {
-            SOUTH,
-            NORTH,
-            UPCOUNTRY
-        }
 
     }
 }
