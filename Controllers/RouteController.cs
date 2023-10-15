@@ -50,7 +50,7 @@ public class RouteController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post(Route route)
+    public async Task<IActionResult> Post([FromBody] Route route)
     {
         try
         {

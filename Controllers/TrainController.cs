@@ -45,7 +45,7 @@ public class TrainController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] CreateTrainDTO createTrainDTO)
+    public async Task<IActionResult> Post([FromBody] TrainDTO createTrainDTO)
     {
         //create train
         Train newTrain = new Train(createTrainDTO.trainName, createTrainDTO.luxurySeatCount, createTrainDTO.economySeatCount);
@@ -54,7 +54,7 @@ public class TrainController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(string id, [FromBody] CreateTrainDTO createTrainDTO)
+    public async Task<IActionResult> Put(string id, [FromBody] TrainDTO createTrainDTO)
     {
         //update train
         Train newTrain = new Train(createTrainDTO.trainName, createTrainDTO.luxurySeatCount, createTrainDTO.economySeatCount);

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MongoDotnetDemo.Models;
 using System.Threading.Tasks;
+using TrainReservationSystem.DTO;
 
 namespace MongoDotnetDemo.Controllers
 {
@@ -38,18 +39,34 @@ namespace MongoDotnetDemo.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Schedule schedule)
+        public async Task<IActionResult> Post([FromBody]ScheduleDTO scheduleDTO)
         {
             //create schedule
+            Schedule schedule = new Schedule();
+            schedule.LuxuryFare = scheduleDTO.scheduleLuxuryFare;
+            schedule.EconomyFare = scheduleDTO.scheduleEconomyFare;
+            schedule.Route = scheduleDTO.scheduleRoute;
+            schedule.DepartureTime = scheduleDTO.scheduleDepartureTime;
+            schedule.ArrivalTime = scheduleDTO.scheduleArrivalTime;
+            schedule.OperatingDays= scheduleDTO.scheduleOperatingDays;
+            
             var result = await _scheduleService.CreateAsync(schedule);
             return Ok(new ApiResponse<string>(true, result, null));
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(string id, [FromBody] Schedule newSchedule)
-        {      
+        public async Task<IActionResult> Put(string id, [FromBody] ScheduleDTO scheduleDTO)
+        {
             //update schdeule
-            var result =  await _scheduleService.UpdateAsync(id, newSchedule);
+            Schedule schedule = new Schedule();
+            schedule.LuxuryFare = scheduleDTO.scheduleLuxuryFare;
+            schedule.EconomyFare = scheduleDTO.scheduleEconomyFare;
+            schedule.Route = scheduleDTO.scheduleRoute;
+            schedule.DepartureTime = scheduleDTO.scheduleDepartureTime;
+            schedule.ArrivalTime = scheduleDTO.scheduleArrivalTime;
+            schedule.OperatingDays = scheduleDTO.scheduleOperatingDays;
+
+            var result =  await _scheduleService.UpdateAsync(id, schedule);
             if (result.Contains("successfully"))
                 return Ok(new ApiResponse<string>(true, result, null));
 

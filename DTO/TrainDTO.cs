@@ -1,6 +1,6 @@
 ﻿namespace TrainReservationSystem.DTO
 {
-    public class CreateTrainDTO
+    public class TrainDTO
     {
         public required string trainName { get; set; }
         public required int luxurySeatCount { get; set; }

@@ -12,13 +12,11 @@ namespace MongoDotnetDemo.Models
         public string DepartureStation { get; set; }
         public string ArrivalStation { get; set; }
         public string Route { get; set; }
-        public bool IsdirectionUp { get; set; }
         public HashSet<string> stopStations { get; set; }
         public DateTime DepartureTime { get; set; }
         public DateTime ArrivalTime { get; set; }
         public double LuxuryFare { get; set; } = 500;
         public double EconomyFare { get; set; } = 250;
-
         // Days of operation
         public HashSet<DayOfWeek> OperatingDays { get; set; }
 
