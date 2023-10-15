@@ -94,6 +94,7 @@ public class UserService : IUserService
         var update = Builders<User>.Update
             .Set(u => u.UserName, newUser.UserName)
             .Set(u => u.PasswordHash, EncryptPassword(newUser.PasswordHash))
+            .Set(u => u.Email, newUser.Email)
             .Set(u => u.Role, newUser.Role);
 
         await _userCollection.UpdateOneAsync(filter, update);

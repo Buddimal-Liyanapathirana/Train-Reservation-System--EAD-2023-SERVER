@@ -46,9 +46,10 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post(User user)
+    public async Task<IActionResult> Post([FromBody]UserDTO userDTO)
     {
         //create user
+        User user = new User(userDTO.userName , userDTO.userNIC , userDTO.userPassword , userDTO.userEmail , userDTO.userRole);
         var result = await _userService.CreateAsync(user);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
@@ -69,10 +70,11 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("{nic}")]
-    public async Task<IActionResult> Put(string nic, [FromBody] User newUser)
+    public async Task<IActionResult> Put(string nic, [FromBody] UpdateUserDTO updateUserDTO)
     {
         //update user
-        var result = await _userService.UpdateAsync(nic, newUser);
+        User user = new User(updateUserDTO.userName, "", updateUserDTO.userPassword, updateUserDTO.userEmail, updateUserDTO.userRole);
+        var result = await _userService.UpdateAsync(nic, user);
         if (result.Contains("successfully"))
             return Ok(new ApiResponse<string>(true, result, null));
 

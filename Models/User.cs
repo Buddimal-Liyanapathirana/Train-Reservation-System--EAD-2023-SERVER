@@ -12,6 +12,9 @@ namespace MongoDotnetDemo.Models
         public string UserName { get; set; }
         public string PasswordHash { get; set; }
 
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
+        public string Email { get; set; }
+
         [EnumDataType(typeof(UserRole))]
         public string Role { get; set; }
         public bool? IsActive { get; set; } = true;
@@ -19,6 +22,15 @@ namespace MongoDotnetDemo.Models
 
         [BsonRepresentation(BsonType.ObjectId)]
         public List<string>? ReservationIds { get; set; }
+
+        public User(string userName, string userNIC, string userPassword , string userEmail , string userRole)
+        {
+            NIC = userNIC;
+            UserName = userName;
+            PasswordHash = userPassword;
+            Email = userEmail;
+            Role = userRole;
+        }
 
     }
 
@@ -28,4 +40,5 @@ namespace MongoDotnetDemo.Models
         TRAVEL_AGENT,
         TRAVELER
     }
+
 }

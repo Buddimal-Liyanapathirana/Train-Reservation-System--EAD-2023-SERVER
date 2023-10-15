@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MongoDotnetDemo.Models;
 using System.Threading.Tasks;
 using TrainReservationSystem.DTO;
@@ -42,6 +43,7 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<Train>(true, "Train retrieved successfully", train));
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateTrainDTO createTrainDTO)
     {
