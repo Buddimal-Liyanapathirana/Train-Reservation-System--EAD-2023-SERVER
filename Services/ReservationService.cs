@@ -31,6 +31,7 @@ public class ReservationService : IReservationService
         return reservations;
     }
 
+
     public async Task<Reservation> GetByIdAsync(string id)
     {
         //get reservation by id
@@ -43,6 +44,42 @@ public class ReservationService : IReservationService
         //get reservations by user
         var reservations = await _reservationCollection.Find(r => r.UserNIC == userNic).ToListAsync();
         return reservations;
+    }
+
+    public async Task<string> CreateRequestAsync(Reservation reservation)
+    {
+        // Creating the reservation request
+        Reservation resReq = new Reservation();
+
+        var user = await _userCollection.Find(u => u.NIC == reservation.RequestedBy).FirstOrDefaultAsync();
+
+        if (user == null)
+            return "Invalid User";
+
+        if (reservation.LuxurySeats + reservation.EconomySeats < 1)
+            return "Please pick a valid number of seats";
+
+        if (reservation.RequestedToDate == null)
+            return "Please pick a valid date";
+
+        if (reservation.LuxurySeats == null)
+            reservation.LuxurySeats = 0;
+
+        if (reservation.EconomySeats == null)
+            reservation.EconomySeats = 0;
+
+        if ((reservation.RequestedToDate - DateTime.Now).Days < 5)
+            return "Cannot request within 5 days";
+
+
+        resReq.EconomySeats = reservation.EconomySeats;
+        resReq.LuxurySeats = reservation.LuxurySeats;
+        resReq.isRequested = true;
+        resReq.RequestedToDate =  reservation.RequestedToDate;
+        resReq.RequestedBy = reservation.RequestedBy;
+
+        await _reservationCollection.InsertOneAsync(resReq);
+        return "Reservation request created successfully";
     }
 
 
@@ -73,6 +110,7 @@ public class ReservationService : IReservationService
         reservation.CreatedOn = DateTime.Now;
         reservation.isCompleted = false;
         reservation.completedTrain = null;
+        reservation.isRequested = false;
        
         if ((reservation.ReservedOn - reservation.CreatedOn).TotalDays < 5)
         {
@@ -105,14 +143,19 @@ public class ReservationService : IReservationService
         if (existingReservation == null)
             return "Reservation not found";
 
-        var train = await _trainCollection.Find(t => t.Id == reservation.TrainId).FirstOrDefaultAsync();
+        if (reservation.isRequested)
+        {
+            return "Cannot update a request";
+        }
+
+        var train = await _trainCollection.Find(t => t.Id == existingReservation.TrainId).FirstOrDefaultAsync();
 
         if ((reservation.ReservedOn - DateTime.Now).TotalDays < 5)
         {
             return "Cannot update within 5 days of the reservation date";
         }
 
-        var result = await UpdateOccupiedTrainSeats(reservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats , existingReservation.LuxurySeats,existingReservation.EconomySeats);
+        var result = await UpdateOccupiedTrainSeats(existingReservation.TrainId, reservation.LuxurySeats, reservation.EconomySeats , existingReservation.LuxurySeats,existingReservation.EconomySeats);
         if (result == -1)
         {
             return "Luxury seat capacity exceeded . Reduce number of seats";
@@ -128,7 +171,7 @@ public class ReservationService : IReservationService
             var filter = Builders<Reservation>.Filter.Eq(r => r.Id, id);
             var update = Builders<Reservation>.Update
                 .Set(s => s.LuxurySeats, reservation.LuxurySeats)
-                .Set(s => s.LuxurySeats, reservation.LuxurySeats)
+                .Set(s => s.EconomySeats, reservation.EconomySeats)
                 .Set(s => s.startStation, reservation.startStation)
                 .Set(s => s.endStation, reservation.endStation)
                 .Set(s => s.ReservedOn, reservation.ReservedOn)
@@ -146,6 +189,12 @@ public class ReservationService : IReservationService
         var reservation = await _reservationCollection.Find(r => r.Id == id).FirstOrDefaultAsync();
         if (reservation == null)
             return "Reservation not found";
+
+        if (reservation.isRequested==true)
+        {
+            await _reservationCollection.DeleteOneAsync(r => r.Id == id);
+            return "Reservation request deleted successfully";
+        }
 
         if ((reservation.ReservedOn - DateTime.Now).Days < 5)
             return "Cannot delete reservation within 5 days of the reservation date";

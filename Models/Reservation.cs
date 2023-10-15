@@ -17,9 +17,14 @@ public class Reservation
     public int EconomySeats { get; set; }
     public int LuxurySeats { get; set; }
     public double TotalFare { get; set; }
+
+    //used to mark reservation as complete
     public bool isCompleted { get; set; }
     public string completedTrain {  get; set; }
+
+    //used to see if the reservation is a request
     public bool isRequested { get; set; }
     public string RequestedBy { get; set; }
+    public DateTime RequestedToDate { get; set; }
 
 }
