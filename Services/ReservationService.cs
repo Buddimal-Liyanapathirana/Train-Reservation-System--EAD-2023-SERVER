@@ -233,7 +233,7 @@ public class ReservationService : IReservationService
         await RemoveReservationIdsFromTrainAndUserCollections(existingReservation.TrainId, existingReservation.UserNIC, id);
         await DeOccupyTrainSeats(existingReservation.TrainId, existingReservation.LuxurySeats, existingReservation.EconomySeats);
 
-        return "Reservation is completed";
+        return "Reservation is completed successfully";
     }
 
     

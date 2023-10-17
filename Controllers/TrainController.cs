@@ -15,6 +15,7 @@ public class TrainController : ControllerBase
         _trainService = trainService;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -23,6 +24,7 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<IEnumerable<Train>>(true, "Trains retrieved successfully", trains));
     }
 
+    [Authorize]
     [HttpGet("/active")]
     public async Task<IActionResult> GetActiveTrains()
     {
@@ -31,6 +33,16 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<IEnumerable<ActiveTrainsForBooking>>(true, "Trains retrieved successfully", trains));
     }
 
+    [Authorize]
+    [HttpPost("/active/withroute")]
+    public async Task<IActionResult> GetActiveTrainsForRoute([FromBody]string route)
+    {
+        //get all active trains
+        var trains = await _trainService.GetActiveTrainsForRoute(route);
+        return Ok(new ApiResponse<IEnumerable<ActiveTrainsForBooking>>(true, "Trains retrieved successfully", trains));
+    }
+
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(string id)
     {
@@ -43,7 +55,7 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<Train>(true, "Train retrieved successfully", train));
     }
 
-    [Authorize]
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] TrainDTO createTrainDTO)
     {
@@ -53,6 +65,7 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<string>(true, result, null));
     }
 
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(string id, [FromBody] TrainDTO createTrainDTO)
     {
@@ -65,6 +78,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpPut("add-schedule/{id}/{scheduleId}")]
     public async Task<IActionResult> AddSchedule(string id, string scheduleId)
     {
@@ -76,7 +90,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpPut("activate/{id}")]
     public async Task<IActionResult> ActivateTrain(string id)
     {
@@ -88,6 +102,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpPut("deactivate/{id}")]
     public async Task<IActionResult> DeactivateTrain(string id)
     {
@@ -99,6 +114,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {

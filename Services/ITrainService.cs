@@ -7,6 +7,7 @@ public interface ITrainService
 {
     Task<IEnumerable<Train>> GetAllAsync();
     Task<IEnumerable<ActiveTrainsForBooking>> GetActiveTrains();
+    Task<IEnumerable<ActiveTrainsForBooking>> GetActiveTrainsForRoute(string route);
     Task<Train> GetByIdAsync(string id);
     Task<string> CreateAsync(Train train);
     Task<string> UpdateAsync(string id, Train train);

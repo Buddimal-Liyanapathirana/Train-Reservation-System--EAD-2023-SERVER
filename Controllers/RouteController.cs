@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MongoDotnetDemo.Models;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ public class RouteController : ControllerBase
         _routeService = routeService;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -30,6 +32,7 @@ public class RouteController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpGet("{name}")]
     public async Task<IActionResult> Get(string name)
     {
@@ -49,6 +52,7 @@ public class RouteController : ControllerBase
         }
     }
 
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Route route)
     {
@@ -64,6 +68,7 @@ public class RouteController : ControllerBase
         }
     }
 
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpPut("{name}")]
     public async Task<IActionResult> Put(string name, [FromBody] Route newRoute)
     {
@@ -83,6 +88,7 @@ public class RouteController : ControllerBase
         }
     }
 
+    [Authorize(Policy = "BACK_OFFICER")]
     [HttpDelete("{name}")]
     public async Task<IActionResult> Delete(string name)
     {

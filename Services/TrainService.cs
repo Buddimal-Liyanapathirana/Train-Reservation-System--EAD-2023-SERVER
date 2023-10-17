@@ -52,6 +52,36 @@ public class TrainService : ITrainService
         return activeTrainsList;
     }
 
+    public async Task<IEnumerable<ActiveTrainsForBooking>> GetActiveTrainsForRoute(string route)
+    {
+        //gets all active trains available for booking . used when placing a booking
+        var activeTrainsList = new List<ActiveTrainsForBooking>();
+        var trains = await _trainCollection.Find(t => t.IsActive == true).ToListAsync();
+
+        foreach (var train in trains)
+        {
+            //creates a list of active trains with custom properties
+            ActiveTrainsForBooking activeTrain = new ActiveTrainsForBooking();
+            var schedule = await _scheduleCollection.Find(s => s.Id == train.Schedule).FirstOrDefaultAsync();
+
+            if (schedule.Route != route)
+                continue;
+
+            activeTrain.Id = train.Id;
+            activeTrain.ScheduleId = schedule.Id;
+            activeTrain.TrainName = train.TrainName;
+            activeTrain.Route = schedule.stopStations;
+            activeTrain.LuxurySeatCount = train.LuxurySeatCount;
+            activeTrain.EconomySeatCount = train.EconomySeatCount;
+            activeTrain.AvailableLuxurySeats = train.LuxurySeatCount - train.OccupiedLuxurySeatCount;
+            activeTrain.AvailableEconomySeats = train.EconomySeatCount - train.OccupiedEconomySeatCount;
+            activeTrain.OperatingDays = schedule.OperatingDays;
+            activeTrainsList.Add(activeTrain);
+        }
+
+        return activeTrainsList;
+    }
+
     public async Task<Train> GetByIdAsync(string id)
     {
         //get train by id
