@@ -91,14 +91,29 @@ public class UserService : IUserService
         newUser.IsActive = existingUser.IsActive;
 
         var filter = Builders<User>.Filter.Eq(u => u.NIC, nic);
+
+        if(newUser.PasswordHash == "")
+        {
+         var update = Builders<User>.Update
+            .Set(u => u.UserName, newUser.UserName)
+            .Set(u => u.Email, newUser.Email)
+            .Set(u => u.Role, newUser.Role);
+
+            await _userCollection.UpdateOneAsync(filter, update);
+            return "User updated successfully";
+
+        }
+        else
+        {
         var update = Builders<User>.Update
             .Set(u => u.UserName, newUser.UserName)
             .Set(u => u.PasswordHash, EncryptPassword(newUser.PasswordHash))
             .Set(u => u.Email, newUser.Email)
             .Set(u => u.Role, newUser.Role);
 
-        await _userCollection.UpdateOneAsync(filter, update);
-        return "User updated successfully";
+            await _userCollection.UpdateOneAsync(filter, update);
+            return "User updated successfully";
+        }
     }
 
     public async Task<string> ActivateUserAsync(string nic)
