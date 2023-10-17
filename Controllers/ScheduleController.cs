@@ -17,7 +17,7 @@ namespace MongoDotnetDemo.Controllers
             _scheduleService = scheduleService;
         }
 
-        [Authorize]
+
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -26,7 +26,7 @@ namespace MongoDotnetDemo.Controllers
             return Ok(new ApiResponse<IEnumerable<Schedule>>(true, "Schedules retrieved successfully", schedules));
         }
 
-        [Authorize]
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
@@ -39,7 +39,7 @@ namespace MongoDotnetDemo.Controllers
             return Ok(new ApiResponse<Schedule>(true, "Schedule retrieved successfully", schedule));
         }
 
-        [Authorize]
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]ScheduleDTO scheduleDTO)
         {
@@ -56,7 +56,7 @@ namespace MongoDotnetDemo.Controllers
             return Ok(new ApiResponse<string>(true, result, null));
         }
 
-        [Authorize]
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody] ScheduleDTO scheduleDTO)
         {
@@ -76,7 +76,7 @@ namespace MongoDotnetDemo.Controllers
             return BadRequest(new ApiResponse<string>(false, result, null));
         }
 
-        [Authorize]
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {

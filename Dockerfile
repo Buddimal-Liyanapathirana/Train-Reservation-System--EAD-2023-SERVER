@@ -14,7 +14,7 @@ COPY ["TrainReservationSystem.csproj", "."]
 RUN dotnet restore "./TrainReservationSystem.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet restore "TrainReservationSystem.csproj"
+RUN dotnet build "TrainReservationSystem.csproj" -c Release -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "TrainReservationSystem.csproj" -c Release -o /app/publish /p:UseAppHost=false

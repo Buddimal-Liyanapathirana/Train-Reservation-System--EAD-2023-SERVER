@@ -15,7 +15,7 @@ public class ReservationController : ControllerBase
         _reservationService = reservationService;
     }
 
-    [Authorize]
+
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -24,7 +24,6 @@ public class ReservationController : ControllerBase
         return Ok(new ApiResponse<IEnumerable< Reservation>>(true, "Reservations retrieved successfully", reservations));
     }
 
-    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(string id)
     {
@@ -36,7 +35,6 @@ public class ReservationController : ControllerBase
         return Ok(new ApiResponse<Reservation>(true, "Reservations retrieved successfully", reservation));
     }
 
-    [Authorize]
     [HttpGet("user/{userNic}")]
     public async Task<IActionResult> GetByUserNicAsync(string userNic)
     {
@@ -51,7 +49,7 @@ public class ReservationController : ControllerBase
         return Ok(new ApiResponse<IEnumerable<Reservation>>(true, "Reservation retrieved successfully", reservation));
     }
 
-    [Authorize]
+
     [HttpPost]
     public async Task<IActionResult> Post([FromBody]ReservationDTO reservationDTO)
     {
@@ -72,7 +70,7 @@ public class ReservationController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize]
+ 
     [HttpPost("/request")]
     public async Task<IActionResult> PostResRequest([FromBody]ReservationRequestDTO reservationRequestDTO)
     {
@@ -93,7 +91,7 @@ public class ReservationController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize]
+
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(string id, [FromBody]EditReservationDTO editReservationDTO)
     {
@@ -112,7 +110,7 @@ public class ReservationController : ControllerBase
             return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize]
+  
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
@@ -124,7 +122,7 @@ public class ReservationController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize]
+  
     [HttpPut("complete/{id}")]
     public async Task<IActionResult> CompleteReservation(string id)
     {

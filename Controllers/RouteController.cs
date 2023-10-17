@@ -16,7 +16,7 @@ public class RouteController : ControllerBase
         _routeService = routeService;
     }
 
-    [Authorize]
+
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -32,7 +32,7 @@ public class RouteController : ControllerBase
         }
     }
 
-    [Authorize]
+
     [HttpGet("{name}")]
     public async Task<IActionResult> Get(string name)
     {
@@ -52,7 +52,6 @@ public class RouteController : ControllerBase
         }
     }
 
-    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Route route)
     {
@@ -68,7 +67,7 @@ public class RouteController : ControllerBase
         }
     }
 
-    [Authorize]
+
     [HttpPut("{name}")]
     public async Task<IActionResult> Put(string name, [FromBody] Route newRoute)
     {
@@ -88,7 +87,7 @@ public class RouteController : ControllerBase
         }
     }
 
-    [Authorize]
+
     [HttpDelete("{name}")]
     public async Task<IActionResult> Delete(string name)
     {
