@@ -52,7 +52,7 @@ public class RouteController : ControllerBase
         }
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Route route)
     {
@@ -68,7 +68,7 @@ public class RouteController : ControllerBase
         }
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpPut("{name}")]
     public async Task<IActionResult> Put(string name, [FromBody] Route newRoute)
     {
@@ -88,7 +88,7 @@ public class RouteController : ControllerBase
         }
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpDelete("{name}")]
     public async Task<IActionResult> Delete(string name)
     {

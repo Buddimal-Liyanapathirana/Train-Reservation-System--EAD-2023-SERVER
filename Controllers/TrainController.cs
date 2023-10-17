@@ -55,7 +55,7 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<Train>(true, "Train retrieved successfully", train));
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] TrainDTO createTrainDTO)
     {
@@ -65,7 +65,7 @@ public class TrainController : ControllerBase
         return Ok(new ApiResponse<string>(true, result, null));
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(string id, [FromBody] TrainDTO createTrainDTO)
     {
@@ -78,7 +78,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpPut("add-schedule/{id}/{scheduleId}")]
     public async Task<IActionResult> AddSchedule(string id, string scheduleId)
     {
@@ -90,7 +90,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpPut("activate/{id}")]
     public async Task<IActionResult> ActivateTrain(string id)
     {
@@ -102,7 +102,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpPut("deactivate/{id}")]
     public async Task<IActionResult> DeactivateTrain(string id)
     {
@@ -114,7 +114,7 @@ public class TrainController : ControllerBase
         return BadRequest(new ApiResponse<string>(false, result, null));
     }
 
-    [Authorize(Policy = "BACK_OFFICER")]
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
