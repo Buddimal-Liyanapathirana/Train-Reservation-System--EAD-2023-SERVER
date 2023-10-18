@@ -78,10 +78,11 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.UseCors(options => options
-    .WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:5000", "https://travelermate.netlify.app") // Add the origins you need
+    //.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:5000", "https://travelermate.netlify.app") // Add the origins you need
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
+    .AllowAnyOrigin()
 );
 
 
